@@ -1,0 +1,25 @@
+#!/bin/sh
+
+echo 'sleep for 5 seconds'
+
+sleep 5
+
+echo 'Fixing routing for metadata service...'
+
+ifconfig
+
+cat /proc/net/if_inet6
+
+DEVICE=`cat /proc/net/if_inet6 | grep pvnet | awk '{ print $6 }'`
+
+echo "* Adding route for 169.254.169.254 via $DEVICE"
+
+route add -host 169.254.169.254 dev $DEVICE
+
+echo 'Running Cloud init...'
+
+/usr/bin/cloud-init init
+/usr/bin/cloud-init modules --mode=config
+/usr/bin/cloud-init modules --mode=final
+
+for i in {1..120}; do sleep 300; echo sleeping...; done
